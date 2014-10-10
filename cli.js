@@ -2,51 +2,56 @@
 
 var program = require('commander');
 var pkg = require('./package.json');
-var path = require('path');
-var spawn = require('child_process').spawn;
+var request = require('request');
 var fs = require('fs');
-var ZettaRuntime = require('zetta-runtime');
-var bootstrapper = ZettaRuntime.bootstrapper;
+var path = require('path');
+var zettaFile = path.join(process.env.HOME, '.zetta');
+//Return proper url in this order. Flag, user set default, default
+function getUrl(program) {
+  var fileExists = fs.existsSync(zettaFile);
+  if(program.url) {
+    return program.url;
+  } else if(fileExists) {
+    var buf = fs.readFileSync(zettaFile);
+    var obj = JSON.parse(buf.toString());
+    return obj.url;
+  } else {
+    return 'http://127.0.0.1:1337/';
+  }
+}
 
 program
   .version(pkg.version)
-  .usage('[options]')
-  .option('new')
-  .option('run')
-  .option('open')
-  .option('cloud')
-  .option('--host -h [host]')
-  .option('--app -a [app]')
-  .option('--port -p [port]', parseInt)
-  .parse(process.argv);
+  .option('-u, --url <url>', 'Base url for zetta. Defaults to http://127.0.0.1:1337/');
 
-if(program.new) {
-  var p = path.join(process.cwd(), program.args[0]);
-  var s = path.join(__dirname, './sample/basic');
-  fs.mkdir(p, function(err) {
-    if(err) {
-      console.log('Error creating folder!');
-    } else {
-      var cp = spawn('cp', [ '-r', s+'/.', p ]);
-
-      cp.stderr.on('data', function(d) {
-        console.log('error:'+d);
-      });
-
-    }
+program
+  .command('devices')
+  .option('<server>', 'Server name to retrieve devices from.')
+  .description('Get devices for given zetta instance.')
+  .action(function(server) {
+    var url = getUrl(program);
+    console.log('Using endpoint: ' + url);
+    request(url, function(err, res, body) {
+      if(err) {
+        console.log('Error retrieving endpoint');
+      } else {
+        var json = JSON.parse(body);
+        console.log(JSON.stringify(json, null, 2));
+      }
+    });
   });
-}
 
-if(program.run) {
-  var app = null;
-  if(program.A) {
-    app = program.A;
-  }
-  bootstrapper(app);
-}
+program
+  .command('default <url>')
+  .description('Set a default url to use.')
+  .action(function(url) {
+    url = { url: url };
+    var str = JSON.stringify(url);
+    var fileHandle = fs.openSync(zettaFile, 'w');
+    var buf = new Buffer(str);
+    var res = fs.writeSync(fileHandle, buf, 0, buf.length, 0);
+    console.log('New default set!');
+  });
 
 
-if(program.open) {
-  var app = path.basename(process.cwd());
-  var o = spawn('open', ['http://siren-api-browser.herokuapp.com/#/entity?url=http:%2F%2Flocalhost:3002%2Fhello']);
-}
+program.parse(process.argv);
