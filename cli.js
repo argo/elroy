@@ -6,6 +6,9 @@ var request = require('request');
 var fs = require('fs');
 var path = require('path');
 var zettaFile = path.join(process.env.HOME, '.zetta');
+var rels = require('./rels');
+
+
 //Return proper url in this order. Flag, user set default, default
 function getUrl(program) {
   var fileExists = fs.existsSync(zettaFile);
@@ -19,6 +22,8 @@ function getUrl(program) {
     return 'http://127.0.0.1:1337/';
   }
 }
+
+
 
 program
   .version(pkg.version)
@@ -37,7 +42,7 @@ program
       } else {
         var json = JSON.parse(body);
         json.links.forEach(function(link) {
-          if(link.rel.indexOf('http://rels.zettajs.io/server') > -1) {
+          if(link.rel.indexOf(rels.server) > -1) {
             request(link.href, function(err, res, body) {
               if(err) {
                 console.log('Error retrieving devices.');
@@ -54,6 +59,29 @@ program
       }
     });
   });
+
+program
+  .command('peers')
+  .description('List all peers on the current zetta server')
+  .action(function() {
+    var url = getUrl(program);
+    console.log('Using endpoint:' + url);
+    request(url, function(err, res, body) {
+      if(err) {
+        console.log('Error retrieving endpoint.');
+      } else {
+        var json = JSON.parse(body);
+        json.links.forEach(function(link) {
+          if(link.rel.indexOf(rels.server) > -1) {
+            console.log(link.title + '                ' + link.href + ' <-- You are here! ');
+          } else if(link.rel.indexOf(rels.peer) > -1) {
+            console.log(link.title + '                ' + link.href);
+          }
+        });
+      }
+    });
+  });
+
 
 program
   .command('default <url>')
