@@ -36,7 +36,21 @@ program
         console.log('Error retrieving endpoint');
       } else {
         var json = JSON.parse(body);
-        console.log(JSON.stringify(json, null, 2));
+        json.links.forEach(function(link) {
+          if(link.rel.indexOf('http://rels.zettajs.io/server') > -1) {
+            request(link.href, function(err, res, body) {
+              if(err) {
+                console.log('Error retrieving devices.');
+              } else {
+                var json = JSON.parse(body);
+                console.log('Devices:');
+                json.entities.forEach(function(device) {
+                  console.log(device.properties.id + '          ' + device.properties.name);
+                });
+              }
+            });
+          }
+        });
       }
     });
   });
