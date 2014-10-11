@@ -6,7 +6,8 @@ var request = require('request');
 var fs = require('fs');
 var path = require('path');
 var zettaFile = path.join(process.env.HOME, '.zetta');
-var rels = require('./rels');
+var rels = require('zetta-rels');
+var repl = require('repl');
 
 
 //Return proper url in this order. Flag, user set default, default
@@ -95,5 +96,11 @@ program
     console.log('New default set!');
   });
 
+program
+  .command('repl <script>')
+  .description('Start a repl session inside Zetta.')
+  .action(function(script) {
+    
+  });
 
 program.parse(process.argv);
