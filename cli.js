@@ -100,7 +100,15 @@ program
   .command('repl <script>')
   .description('Start a repl session inside Zetta.')
   .action(function(script) {
+    //fork script
+    //pipe stdin and stdout to repl
+    //Allow for stuff to be sent back and forth.
     
+    repl.start({
+      prompt: 'ZETTA> ',
+      input: process.stdin,
+      output: process.stdout
+    });
   });
 
 program.parse(process.argv);
