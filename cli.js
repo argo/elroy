@@ -5,10 +5,14 @@ var pkg = require('./package.json');
 var request = require('request');
 var fs = require('fs');
 var path = require('path');
+var child = require('child_process');
+var fork = child.fork;
 var zettaFile = path.join(process.env.HOME, '.zetta');
 var rels = require('zetta-rels');
 var repl = require('repl');
-
+var util = require('util');
+var Transform = require('stream').Transform;
+var replCb;
 
 //Return proper url in this order. Flag, user set default, default
 function getUrl(program) {
@@ -100,15 +104,30 @@ program
   .command('repl <script>')
   .description('Start a repl session inside Zetta.')
   .action(function(script) {
-    //fork script
-    //pipe stdin and stdout to repl
-    //Allow for stuff to be sent back and forth.
-    
-    repl.start({
-      prompt: 'ZETTA> ',
-      input: process.stdin,
-      output: process.stdout
+    var modulePath = path.join(process.cwd(), script);
+    var childProc = fork(modulePath, [], {silent: true});
+    process.on('exit', function() {
+      childProc.kill(0);
     });
+    childProc.on('message', function(msg){
+      if(replCb) {
+        replCb(null, msg.msg);
+      }
+      else {
+        console.log(msg.msg);
+      }
+    });
+    
+    var appRepl = repl.start({
+      prompt: 'ZETTA> ',
+      eval: function(cmd, context, file, cb){
+        var command = cmd.replace('(', '').replace(')','').replace('\n', '');
+        childProc.send({ msg: command });
+        replCb = cb;
+      }
+    });
+
+
   });
 
 program.parse(process.argv);
