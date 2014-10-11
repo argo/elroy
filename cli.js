@@ -122,7 +122,12 @@ program
       prompt: 'ZETTA> ',
       eval: function(cmd, context, file, cb){
         var command = cmd.replace('(', '').replace(')','').replace('\n', '');
-        childProc.send({ msg: command });
+        var split = command.split(' ');
+        if(split[1]) {
+          childProc.send({ msg: split[0], params: split[1]});
+        } else {
+          childProc.send({ msg: command });
+        }
         replCb = cb;
       }
     });
