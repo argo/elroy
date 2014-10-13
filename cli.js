@@ -135,4 +135,6 @@ program
 
   });
 
+if(!program.args) program.help();
+
 program.parse(process.argv);

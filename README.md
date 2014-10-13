@@ -1,42 +1,34 @@
-# ![Zetta.js](http://i.imgur.com/09p3qw1.png) 
+# ![Zetta.js](http://i.imgur.com/09p3qw1.png)
 
-Zetta is an open source platform for the Internet of Things.
+Zetta is an open source platform for the Internet of Things, and this is the CLI interface for that platform.
 
-* Model physical devices as state machines.
-* Orchestrate interactions.
-* Get an API... for free.
+At the moment it has some basic functionality. You can explore your Zetta API. You can list devices, peers, or run an experimental repl for a local zetta instance.
 
-## Example
+```bash
 
-### app.js
+  Usage: undefined [options] [command]
 
-```javascript
-var HelloApp = module.exports = function() {
-  this.name = 'hello';
-};
+  Commands:
 
-HelloApp.prototype.init = function(zetta) {
-  zetta.get('joes-office-photosensor', function(err, photosensor) {
-    zetta.get('joes-office-led', function(err, led) {
-      photosensor.on('change', function(value) {
-        if (value < 100) {
-          led.call('turn-on');
-        } else {
-          led.call('turn-off');
-        }
-      });
+    devices [options]
+       Get devices for given zetta instance.
 
-      zetta.expose(led);
-      zetta.expose(photosensor);
-    });
-  });
-};
-```
+    peers
+       List all peers on the current zetta server
 
-## Install
+    default <url>
+       Set a default url to use.
+
+    repl <script>
+       Start a repl session inside Zetta.
+
+
+  Options:
+
+    -h, --help       output usage information
+    -V, --version    output the version number
+    -u, --url <url>  Base url for zetta. Defaults to http://127.0.0.1:1337/
 
 ```
-$ npm install -g zetta
-```
 
-
+The repl functionality is experimental and requires and additonal module and configuration for use.
