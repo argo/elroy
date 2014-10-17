@@ -4,8 +4,9 @@
   "description": "",
   "main": "zetta.js",
   "dependencies": {
-    "commander": "~2.1.0",
-    "zetta-runtime": "*"
+    "commander": "~2.3.0",
+    "request": "^2.45.0",
+    "zetta-rels": "^0.1.0"
   },
   "devDependencies": {},
   "scripts": {
