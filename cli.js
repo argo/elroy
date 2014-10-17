@@ -7,12 +7,16 @@ var fs = require('fs');
 var path = require('path');
 var child = require('child_process');
 var fork = child.fork;
+var spawn = child.spawn;
 var zettaFile = path.join(process.env.HOME, '.zetta');
 var rels = require('zetta-rels');
 var repl = require('repl');
 var util = require('util');
 var Transform = require('stream').Transform;
 var replCb;
+var starterRepo = 'http://github.com/zettajs/zetta-starter-project';
+var gitArgs = ['clone', starterRepo];
+var gitCommand = 'git';
 
 //Return proper url in this order. Flag, user set default, default
 function getUrl(program) {
@@ -98,6 +102,16 @@ program
     var buf = new Buffer(str);
     var res = fs.writeSync(fileHandle, buf, 0, buf.length, 0);
     console.log('New default set!');
+  });
+
+program
+  .command('new <name>')
+  .description('Create a new project.')
+  .action(function(name) {
+    var git = spawn(gitCommand, gitArgs.concat([name]));
+    git.stdout.pipe(process.stdout);
+    git.stderr.pipe(process.stderr);
+    git.stdin.pipe(process.stdin);
   });
 
 program
